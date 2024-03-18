@@ -1,19 +1,35 @@
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import axios from 'axios';
 
 function CleaningChat() {
-    const [name, setName] = useState('');
     const [address, setAddress] = useState('');
     const [phone, setPhone] = useState('');
     const [date, setDate] = useState('');
+    const [userData, setUserData] = useState(null);
 
     const [currentStep, setCurrentStep] = useState(0);
     const [chatMessages, setChatMessages] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
 
+
+    const token = localStorage.getItem('token');
+    const config = {
+        headers: { Authorization: `Bearer ${token}` }
+    }
+
+    useEffect(() => {
+        axios.get('http://localhost:8081/api/v1/getUser', config)
+            .then(response => {
+                setUserData(response.data);
+            })
+            .catch(error => {
+                console.error('Error fetching user data:', error);
+            });
+    }, []);
+
+
     const steps = [
-        { question: 'Здравствуйте. Для быстрой заявки, напишите свое имя:' },
-        { question: 'Введите ваш адрес:' },
+        { question: 'Здравствуйте. Для быстрой заявки, напишите ваш адрес:' },
         { question: 'Введите ваш номер телефона:' },
         { question: 'Введите дату или время:' }
     ];
@@ -21,29 +37,50 @@ function CleaningChat() {
     const handleMessageSubmit = (e) => {
         e.preventDefault();
         const question = steps[currentStep].question;
-        const userResponse = currentStep === 0 ? name : currentStep === 1 ? address : currentStep === 2 ? phone : date;
+        const userResponse = currentStep === 0 ? address : currentStep === 1 ? phone : date;
 
         const updatedChatMessages = [...chatMessages, { question, userResponse }];
         setChatMessages(updatedChatMessages);
 
-        if (currentStep === 3) {
-            axios.post('http://localhost:8081/api/v1/offerReg', { name, address, phone, date })
-                .then(response => {
-                    alert('Запись успешно добавлена в базу данных!');
-                    setName('');
-                    setAddress('');
-                    setPhone('');
-                    setDate('');
-                    setCurrentStep(0);
-                    setChatMessages([]);
-                })
-                .catch(error => {
-                    console.error('Ошибка при отправке запроса:', error);
-                });
+        // if (currentStep === 2) {
+        //     axios.post('http://localhost:8081/api/v1/offerReg', { address, phone, date })
+        //         .then(response => {
+        //             alert('Запись успешно добавлена в базу данных!');
+        //             setAddress('');
+        //             setPhone('');
+        //             setDate('');
+        //             setCurrentStep(0);
+        //             setChatMessages([]);
+        //         })
+        //         .catch(error => {
+        //             console.error('Ошибка при отправке запроса:', error);
+        //         });
+        // } else {
+        //     setCurrentStep(currentStep + 1);
+        // }
+
+        if (currentStep === 2) {
+            try {
+            axios.post('http://localhost:8081/api/v1/offerReg', { address, phone, date }, config);
+            alert('Запись успешно добавлена в базу данных!');
+            setAddress('');
+            setPhone('');
+            setCurrentStep(0);
+            setChatMessages([]);
+            if (userData) {
+                const userName = userData.firstname;
+                const thankYouMessage = `Спасибо что оставили заявку, ${userName}`;
+                setChatMessages(prevMessages => [...prevMessages, { message: thankYouMessage }]);
+            }
+        } catch (error) {
+            alert('Ошибка при добавлении записи в базу данных');
+        }
         } else {
             setCurrentStep(currentStep + 1);
         }
     };
+
+
 
     const toggleChat = () => {
         setIsOpen(!isOpen);
@@ -84,7 +121,7 @@ function CleaningChat() {
                                     )}
                                 </div>
                             ))}
-                            {currentStep < 4 && (
+                            {currentStep < 3 && (
                                 <div className="mb-4">
                                     <div className="bg-gray-200 p-4 rounded-lg max-w-70 self-start">
                                         {steps[currentStep].question}
@@ -93,7 +130,7 @@ function CleaningChat() {
                             )}
                         </div>
                         <form onSubmit={handleMessageSubmit} className="flex">
-                            {currentStep === 3 ? (
+                            {currentStep === 2 ? (
                                 <input
                                     type="text"
                                     value={date}
@@ -104,8 +141,8 @@ function CleaningChat() {
                             ) : (
                                 <input
                                     type="text"
-                                    value={currentStep === 0 ? name : currentStep === 1 ? address : currentStep === 2 ? phone : date}
-                                    onChange={(e) => currentStep === 0 ? setName(e.target.value) : currentStep === 1 ? setAddress(e.target.value) : currentStep === 2 ? setPhone(e.target.value) : setDate(e.target.value)}
+                                    value={currentStep === 0 ? address : currentStep === 1 ? phone : date}
+                                    onChange={(e) => currentStep === 0 ? setAddress(e.target.value) : currentStep === 1 ? setPhone(e.target.value) : setDate(e.target.value)}
                                     className="flex-1 mr-4 p-4 border border-gray-300 rounded-lg"
                                 />
                             )}

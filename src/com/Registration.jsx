@@ -66,7 +66,7 @@ export default function Registration() {
       <h1 className="text-start mt-4">Пароль</h1>
       <input type="password" id="password" className="border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="•••••••••" value={password} onChange={(event) =>
               {
-                setEmail(event.target.value);
+                setPassword(event.target.value);
               }
               }/>
       <button type="submit" className="text-white bg-gray-800 hover:border mt-16 hover:text-black hover:bg-white focus:ring-4 focus:outline-none focus:ring-blue-300 font-bold rounded-lg text-sm mx-auto w-1/2 px-5 py-2.5 text-center" onClick={registration}>Зарегестрироваться</button>
