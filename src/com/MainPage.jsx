@@ -11,12 +11,12 @@ export default function MainPage() {
 
     const handleZayava = async () => {
         try {
-            // const response = await axios.post('http://localhost:8081/api/v1/auth/zayava', {
-            //     name,
-            //     phone
-            // });
+             await axios.post('http://localhost:8081/api/v1/zayava', {
+                name,
+                phone
+            });
             console.log(name, ' ' ,phone)
-            alert("Терпила!");
+            alert("Заявка одобрена!");
             setName('');
             setPhone('');
         } catch (error) {
