@@ -5,6 +5,9 @@ function CleaningChat() {
     const [address, setAddress] = useState('');
     const [phone, setPhone] = useState('');
     const [date, setDate] = useState('');
+    const [allergies, setAllergies] = useState('');
+    const [pets,setPets] = useState('');
+    const [chatRating,setChatRating] = useState('');
     const [userData, setUserData] = useState(null);
 
     const [currentStep, setCurrentStep] = useState(0);
@@ -31,52 +34,66 @@ function CleaningChat() {
     const steps = [
         { question: 'Здравствуйте. Для быстрой заявки, напишите ваш адрес:' },
         { question: 'Введите ваш номер телефона:' },
-        { question: 'Введите дату или время:' }
+        { question: 'Введите дату или время:' },
+        { question: 'У кого-то в доме есть алергия?:' },
+        { question: 'У вас есть домашние животные?:' },
+        { question: 'Оцените пожалуйста чат 1-10:' },
     ];
 
     const handleMessageSubmit = (e) => {
         e.preventDefault();
         const question = steps[currentStep].question;
-        const userResponse = currentStep === 0 ? address : currentStep === 1 ? phone : date;
+        let userResponse = '';
+
+        switch (currentStep) {
+            case 0:
+                userResponse = address;
+                break;
+            case 1:
+                userResponse = phone;
+                break;
+            case 2:
+                userResponse = date;
+                break;
+            case 3:
+                userResponse = allergies;
+                break;
+            case 4:
+                userResponse = pets;
+                break;
+            case 5:
+                userResponse = chatRating;
+                break;
+            default:
+                break;
+        }
 
         const updatedChatMessages = [...chatMessages, { question, userResponse }];
         setChatMessages(updatedChatMessages);
 
-        // if (currentStep === 2) {
-        //     axios.post('http://localhost:8081/api/v1/offerReg', { address, phone, date })
-        //         .then(response => {
-        //             alert('Запись успешно добавлена в базу данных!');
-        //             setAddress('');
-        //             setPhone('');
-        //             setDate('');
-        //             setCurrentStep(0);
-        //             setChatMessages([]);
-        //         })
-        //         .catch(error => {
-        //             console.error('Ошибка при отправке запроса:', error);
-        //         });
-        // } else {
-        //     setCurrentStep(currentStep + 1);
-        // }
+        // Обновляем текущий шаг
+        setCurrentStep(currentStep + 1);
 
-        if (currentStep === 2) {
+        if (currentStep === 5) {
             try {
-            axios.post('http://localhost:8081/api/v1/offerReg', { address, phone, date }, config);
-            alert('Запись успешно добавлена в базу данных!');
-            setAddress('');
-            setPhone('');
-            setCurrentStep(0);
-            setChatMessages([]);
-            if (userData) {
-                const userName = userData.firstname;
-                const thankYouMessage = `Спасибо что оставили заявку, ${userName}`;
-                setChatMessages(prevMessages => [...prevMessages, { message: thankYouMessage }]);
+                axios.post('http://localhost:8081/api/v1/offerReg', { address, phone, date, allergies, pets, chatRating }, config);
+                alert('Запись успешно добавлена в базу данных!');
+                setAddress('');
+                setPhone('');
+                setDate('');
+                setAllergies('');
+                setPets('');
+                setChatRating('');
+                setCurrentStep(0);
+                setChatMessages([]);
+                if (userData) {
+                    const userName = userData.firstname;
+                    const thankYouMessage = `Спасибо, что оставили заявку, ${userName}!`;
+                    setChatMessages(prevMessages => [...prevMessages, { message: thankYouMessage }]);
+                }
+            } catch (error) {
+                alert('Ошибка при добавлении записи в базу данных');
             }
-        } catch (error) {
-            alert('Ошибка при добавлении записи в базу данных');
-        }
-        } else {
-            setCurrentStep(currentStep + 1);
         }
     };
 
@@ -121,7 +138,7 @@ function CleaningChat() {
                                     )}
                                 </div>
                             ))}
-                            {currentStep < 3 && (
+                            {currentStep < 5 && (
                                 <div className="mb-4">
                                     <div className="bg-gray-200 p-4 rounded-lg max-w-70 self-start">
                                         {steps[currentStep].question}
@@ -136,6 +153,30 @@ function CleaningChat() {
                                     value={date}
                                     onChange={(e) => setDate(e.target.value)}
                                     placeholder="Введите время или дату"
+                                    className="flex-1 mr-4 p-4 border border-gray-300 rounded-lg"
+                                />
+                            ) : currentStep === 3 ? (
+                                <input
+                                    type="text"
+                                    value={allergies}
+                                    onChange={(e) => setAllergies(e.target.value)}
+                                    placeholder="Есть ли аллергии в доме?"
+                                    className="flex-1 mr-4 p-4 border border-gray-300 rounded-lg"
+                                />
+                            ) : currentStep === 4 ? (
+                                <input
+                                    type="text"
+                                    value={pets}
+                                    onChange={(e) => setPets(e.target.value)}
+                                    placeholder="Есть ли домашние животные?"
+                                    className="flex-1 mr-4 p-4 border border-gray-300 rounded-lg"
+                                />
+                            ) : currentStep === 5 ? (
+                                <input
+                                    type="text"
+                                    value={chatRating}
+                                    onChange={(e) => setChatRating(e.target.value)}
+                                    placeholder="Оцените чат 1-10"
                                     className="flex-1 mr-4 p-4 border border-gray-300 rounded-lg"
                                 />
                             ) : (
@@ -153,6 +194,7 @@ function CleaningChat() {
                                 Отправить
                             </button>
                         </form>
+
                     </div>
                 </div>
             )}
